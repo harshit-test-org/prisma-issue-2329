@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ReqStatus{
+  pending
+  accepted
+}
+
+model FriendRequest {
+  createdAt  DateTime @default(now()) @map("created_at")
+  toUserId   Int      @map("to_user_id")
+  status           ReqStatus  @default(pending)
+  fromUserId Int      @map("from_user_id")
+  toUser     User     @relation("friend_requests_to", fields: [toUserId], references: [id])
+  fromUser   User     @relation("friend_requests_from", fields: [fromUserId], references: [id])
+
+  @@id([fromUserId, toUserId])
+  @@map("friend_requests")
+}
+
+model User {
+  id                     Int             @default(autoincrement()) @id
+  createdFriendRequests  FriendRequest[] @relation("friend_requests_to")
+  receivedFriendRequests FriendRequest[] @relation("friend_requests_from")
+}
